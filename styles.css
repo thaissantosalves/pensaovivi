@@ -1,0 +1,81 @@
+/* cabeçalho */
+
+body {
+
+    background-color:  #ecebee;
+    margin: 0;
+    overflow-x: hidden
+}
+
+header{
+    background-color: white;
+    height: 200px;
+    position: relative;
+    opacity: 0;
+    animation: slideIn 2.0s
+  
+}
+@keyframes slideIn {
+    to {
+        opacity: 1 ;
+    }   
+}
+.logo {
+    align-items: center;
+    display: flex;
+    margin-left: 550px;
+   
+}
+
+header img{
+    border: none;
+    width: 40%;
+    display: block;
+    margin-bottom: 20px;
+    margin-left: 90px;
+}
+/*paragrafo */
+
+.banner{
+    width: 5000px;
+    overflow: hidden;
+}
+
+img-banner{
+    width: 5000px; /* Faz a imagem ocupar 100% da largura do contêiner */
+      height: auto; /* Mantém a proporção da imagem */
+      
+}
+
+
+   
+
+/* carrosel */
+ 
+
+
+
+
+/*rodape*/
+
+.footer{
+    background-color: #57261c;
+    position: relative;
+    margin-top: 20%;
+    height: 350px;
+    
+    
+}
+
+.footer-content{
+    color: white;
+    padding-top: 15%;
+    margin-left: 700px;
+}
+
+.footer-titulo{
+    color: white;
+   text-align: center;
+  margin-top: -250px;
+    
+}
