@@ -4,7 +4,7 @@ body {
 
     background-color:  #ecebee;
     margin: 0;
-    overflow-x: hidden
+
 }
 
 header{
@@ -23,8 +23,9 @@ header{
 .logo {
     align-items: center;
     display: flex;
-    margin-left: 550px;
-   
+    width: 800px;
+    height: 200px;
+    padding-left: 600px;
 }
 
 header img{
@@ -34,7 +35,7 @@ header img{
     margin-bottom: 20px;
     margin-left: 90px;
 }
-/*paragrafo */
+/*banner */
 
 .banner{
     width: 5000px;
@@ -44,15 +45,60 @@ header img{
 img-banner{
     width: 5000px; /* Faz a imagem ocupar 100% da largura do contêiner */
       height: auto; /* Mantém a proporção da imagem */
-      
+      display: block;
 }
 
 
    
 
-/* carrosel */
- 
+/* paragrafo*/
+.container{
+   
 
+    
+}
+.img-paragrafo{
+    width: 100%;
+    height: auto;
+    margin-left: 1050px;
+}
+imgP{
+  max-width: 100%;
+  height: auto;
+}
+
+.paragrafo1{
+ text-align: left;
+ margin: 200px 0px 80px 300px;
+ font-size: 25px;
+ font-weight: 800;
+ color: #996b42;
+}
+
+.titulo2{
+    text-align: left;
+    margin: 0px 0px 80px 300px;
+    font-size: 30px;
+    font-weight: 400;
+    color: #643c23;
+}
+
+.paragrafo2{
+    text-align: left;
+    width: 600px;
+    margin: 0px 0px 70px 300px;
+    font-size: 25px;
+    word-spacing: 10px;
+    color: #996b42;
+
+}
+@media (max-width: 600px){
+    .container {
+        flex-direction: column; /* Alinha verticalmente em telas menores */
+        align-items: center;
+      }
+}
+    
 
 
 
