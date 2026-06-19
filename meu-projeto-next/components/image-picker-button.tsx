@@ -7,21 +7,22 @@ type ImagePickerButtonProps = {
   label?: string;
 };
 
+/**
+ * Input nativo estilizado — abre galeria/câmera no iOS e Android
+ * (label + opacity-0 falha em alguns Safari mobile).
+ */
 export default function ImagePickerButton({
   onChange,
   label = "Escolher da galeria",
 }: ImagePickerButtonProps) {
   return (
-    <label className="relative flex w-full min-h-[44px] cursor-pointer items-center justify-center overflow-hidden rounded-xl bg-orange-500 px-4 py-3 text-xs font-bold text-white hover:bg-orange-600 transition active:scale-[0.98]">
-      <span className="pointer-events-none select-none">{label}</span>
-      <input
-        type="file"
-        accept={IMAGE_ACCEPT}
-        onChange={onChange}
-        className="absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0"
-        style={{ fontSize: 16 }}
-        aria-label={label}
-      />
-    </label>
+    <input
+      type="file"
+      accept={IMAGE_ACCEPT}
+      onChange={onChange}
+      aria-label={label}
+      className="w-full min-h-[44px] cursor-pointer rounded-lg border border-stone-200 bg-white py-2 pl-3 text-sm text-stone-500 file:me-3 file:cursor-pointer file:rounded-lg file:border-0 file:bg-orange-600 file:px-4 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-orange-700"
+      style={{ fontSize: 16 }}
+    />
   );
 }

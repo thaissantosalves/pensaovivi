@@ -1,55 +1,32 @@
 "use client";
 
-import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import AddIcon from "@mui/icons-material/Add";
-import LogoutOutlinedIcon from "@mui/icons-material/LogoutOutlined";
+import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import VisibilityOffOutlinedIcon from "@mui/icons-material/VisibilityOffOutlined";
+import AdminHeader from "@/components/admin-header";
 import AppIcon from "@/components/app-icon";
 import ProductThumbnail from "@/components/product-thumbnail";
 import { categories } from "@/lib/menu-data";
 import { formatPrice } from "@/lib/format";
-import ImagePickerButton from "@/components/image-picker-button";
-import ModalCloseButton from "@/components/modal-close-button";
-import { fieldInputSurfaceClass } from "@/lib/input-styles";
-import { formatMoneyInput, maskMoneyInput, parseMoneyInput } from "@/lib/masks";
-import { validateImageFile } from "@/lib/image-file";
 import type { CategoryId, Product } from "@/types";
+import { adminBtnBlock, adminBtnPrimary } from "@/lib/admin-button-styles";
 
-type ProductForm = {
-  categoryId: CategoryId;
-  name: string;
-  description: string;
-  price: string;
-  active: boolean;
-};
-
-const emptyForm = (categoryId: CategoryId = "refeicoes"): ProductForm => ({
-  categoryId,
-  name: "",
-  description: "",
-  price: "",
-  active: true,
-});
+const validCategories = new Set(categories.map((c) => c.id));
 
 export default function AdminDashboard() {
   const router = useRouter();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState<CategoryId>("refeicoes");
-  const [modalOpen, setModalOpen] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [form, setForm] = useState<ProductForm>(emptyForm());
-  const [error, setError] = useState("");
-  const [saving, setSaving] = useState(false);
   const [togglingId, setTogglingId] = useState<string | null>(null);
   const [toggleError, setToggleError] = useState("");
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [removeImage, setRemoveImage] = useState(false);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [highlightId, setHighlightId] = useState<string | null>(null);
 
   const loadData = useCallback(async () => {
     try {
@@ -76,41 +53,57 @@ export default function AdminDashboard() {
     loadData();
   }, [loadData]);
 
+  useEffect(() => {
+    const raw = sessionStorage.getItem("adminFlash");
+    if (!raw) return;
+
+    sessionStorage.removeItem("adminFlash");
+
+    try {
+      const flash = JSON.parse(raw) as {
+        id?: string;
+        cat?: string;
+        nome?: string;
+        type?: "created" | "updated";
+      };
+
+      if (flash.cat && validCategories.has(flash.cat as CategoryId)) {
+        setActiveCategory(flash.cat as CategoryId);
+      }
+
+      const label = flash.nome ?? "Prato";
+      setSuccessMessage(
+        flash.type === "updated"
+          ? `"${label}" atualizado com sucesso!`
+          : `"${label}" cadastrado com sucesso!`
+      );
+
+      if (flash.id) setHighlightId(flash.id);
+
+      const timer = window.setTimeout(() => {
+        setSuccessMessage(null);
+        setHighlightId(null);
+      }, 6000);
+
+      return () => window.clearTimeout(timer);
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!highlightId || products.length === 0) return;
+
+    const el = document.getElementById(`admin-product-${highlightId}`);
+    el?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [highlightId, products]);
+
   const filteredProducts = useMemo(
     () => products.filter((p) => p.categoryId === activeCategory),
     [products, activeCategory]
   );
 
   const visibleCount = filteredProducts.filter((p) => p.active !== false).length;
-
-  const resetImageState = () => {
-    setImagePreview(null);
-    setImageFile(null);
-    setRemoveImage(false);
-  };
-
-  const openCreate = () => {
-    setEditingId(null);
-    setForm(emptyForm(activeCategory));
-    setError("");
-    resetImageState();
-    setModalOpen(true);
-  };
-
-  const openEdit = (product: Product) => {
-    setEditingId(product.id);
-    setForm({
-      categoryId: product.categoryId,
-      name: product.name,
-      description: product.description,
-      price: formatMoneyInput(product.price),
-      active: product.active !== false,
-    });
-    setError("");
-    resetImageState();
-    setImagePreview(product.imageUrl ?? null);
-    setModalOpen(true);
-  };
 
   const handleLogout = async () => {
     await fetch("/api/auth/logout", { method: "POST" });
@@ -144,123 +137,6 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    e.target.value = "";
-
-    if (!file) return;
-
-    try {
-      validateImageFile(file);
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Não foi possível usar esta imagem."
-      );
-      return;
-    }
-
-    setError("");
-    setImageFile(file);
-    setRemoveImage(false);
-    setImagePreview(URL.createObjectURL(file));
-  };
-
-  const handleRemoveImage = () => {
-    setImageFile(null);
-    setImagePreview(null);
-    setRemoveImage(true);
-  };
-
-  const uploadImageForProduct = async (productId: string) => {
-    if (removeImage) {
-      const res = await fetch(
-        `/api/products/upload?productId=${encodeURIComponent(productId)}`,
-        { method: "DELETE" }
-      );
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error ?? "Erro ao remover imagem.");
-      }
-      return;
-    }
-
-    if (!imageFile) return;
-
-    const formData = new FormData();
-    formData.append("file", imageFile);
-    formData.append("productId", productId);
-
-    const res = await fetch("/api/products/upload", {
-      method: "POST",
-      body: formData,
-    });
-
-    if (!res.ok) {
-      const data = await res.json();
-      throw new Error(data.error ?? "Erro ao enviar imagem.");
-    }
-  };
-
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    setError("");
-    setSaving(true);
-
-    const payload = {
-      categoryId: form.categoryId,
-      name: form.name.trim(),
-      description: form.description.trim(),
-      price: parseMoneyInput(form.price),
-      active: form.active,
-    };
-
-    if (!payload.name) {
-      setError("Digite o nome do prato.");
-      setSaving(false);
-      return;
-    }
-    if (!payload.price || payload.price <= 0 || !Number.isFinite(payload.price)) {
-      setError("Digite um preço válido.");
-      setSaving(false);
-      return;
-    }
-
-    try {
-      const res = editingId
-        ? await fetch(`/api/products/${editingId}`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload),
-          })
-        : await fetch("/api/products", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload),
-          });
-
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.error ?? "Erro ao salvar.");
-        return;
-      }
-
-      const productId = editingId ?? data.product?.id;
-      if (productId && (imageFile || removeImage)) {
-        await uploadImageForProduct(productId);
-      }
-
-      setModalOpen(false);
-      resetImageState();
-      await loadData();
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Sem conexão. Tente de novo."
-      );
-    } finally {
-      setSaving(false);
-    }
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center text-[var(--text-muted)] text-sm">
@@ -270,31 +146,21 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-dvh bg-[var(--bg)] overflow-x-hidden">
-      <div className="max-w-md mx-auto min-h-dvh bg-[var(--bg)] shadow-xl shadow-stone-200/30 overflow-x-hidden">
-        <header className="sticky top-0 z-10 bg-[var(--surface)] border-b border-[var(--border)] px-4 py-4">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <h1 className="font-display text-xl text-orange-600 italic leading-tight">
-                Meus pratos
-              </h1>
-              <p className="text-xs text-[var(--text-muted)] mt-1 leading-relaxed">
-                Esconda pratos que não estão disponíveis hoje. Eles ficam
-                salvos e você pode mostrar de novo quando quiser.
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={handleLogout}
-              className="shrink-0 flex items-center gap-1 text-xs font-semibold text-[var(--text-muted)] hover:text-red-600 px-2 py-1"
-            >
-              <LogoutOutlinedIcon sx={{ fontSize: 16 }} />
-              Sair
-            </button>
-          </div>
-        </header>
+    <div className="bg-[var(--bg)]">
+      <div className="mx-auto max-w-md bg-[var(--bg)] shadow-xl shadow-stone-200/30">
+        <AdminHeader
+          title="Meus pratos"
+          subtitle="Esconda pratos indisponíveis hoje. Eles ficam salvos e você pode mostrar de novo quando quiser."
+          onLogout={handleLogout}
+        />
 
         <main className="px-4 py-5 pb-28">
+          {successMessage && (
+            <div className="mb-4 flex items-start gap-2 rounded-xl border border-green-200 bg-green-50 px-3 py-2.5 text-sm text-green-800">
+              <CheckCircleOutlineIcon sx={{ fontSize: 18, mt: "2px", flexShrink: 0 }} />
+              <p>{successMessage}</p>
+            </div>
+          )}
           <div className="mb-4">
             <p className="text-sm font-bold text-[var(--text)] mb-2">
               Tipo de prato
@@ -366,13 +232,17 @@ export default function AdminDashboard() {
             ) : (
               filteredProducts.map((product) => {
                 const isVisible = product.active !== false;
+                const isHighlighted = highlightId === product.id;
                 return (
                   <article
                     key={product.id}
+                    id={`admin-product-${product.id}`}
                     className={`rounded-2xl border p-4 transition ${
-                      isVisible
-                        ? "bg-[var(--surface)] border-[var(--border)]"
-                        : "bg-stone-50 border-stone-200 opacity-80"
+                      isHighlighted
+                        ? "border-green-400 bg-green-50/60 ring-2 ring-green-400/40"
+                        : isVisible
+                          ? "bg-[var(--surface)] border-[var(--border)]"
+                          : "bg-stone-50 border-stone-200 opacity-80"
                     }`}
                   >
                     <div className="flex items-start gap-3">
@@ -427,14 +297,13 @@ export default function AdminDashboard() {
                           </>
                         )}
                       </button>
-                      <button
-                        type="button"
-                        onClick={() => openEdit(product)}
+                      <Link
+                        href={`/admin/editar/${product.id}`}
                         className="flex items-center justify-center gap-1 px-4 py-2.5 rounded-xl border border-[var(--border)] text-xs font-bold text-[var(--text)] hover:border-orange-300 hover:bg-orange-50/50 transition"
                       >
                         <EditOutlinedIcon sx={{ fontSize: 15 }} />
                         Editar
-                      </button>
+                      </Link>
                     </div>
                   </article>
                 );
@@ -445,218 +314,16 @@ export default function AdminDashboard() {
 
         <div className="fixed bottom-0 inset-x-0 z-20 px-4 pb-4 pointer-events-none">
           <div className="max-w-md mx-auto pointer-events-auto">
-            <button
-              type="button"
-              onClick={openCreate}
-              className="w-full flex items-center justify-center gap-2 bg-orange-500 text-white py-4 rounded-2xl font-bold text-sm shadow-xl shadow-orange-200/50 hover:bg-orange-600 active:scale-[0.99] transition"
+            <Link
+              href={`/admin/novo?categoria=${activeCategory}`}
+              className={`${adminBtnPrimary} ${adminBtnBlock} gap-2`}
             >
-              <AddIcon sx={{ fontSize: 22 }} />
-              Adicionar prato
-            </button>
+              <AddIcon sx={{ fontSize: 20 }} />
+              Cadastrar prato
+            </Link>
           </div>
         </div>
       </div>
-
-      {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center">
-          <button
-            type="button"
-            aria-label="Fechar"
-            className="absolute inset-0 bg-black/40"
-            onClick={() => setModalOpen(false)}
-          />
-          <form
-            onSubmit={handleSubmit}
-            className="relative z-10 flex w-full max-w-md max-h-[90dvh] flex-col overflow-hidden rounded-t-3xl bg-[var(--surface)]"
-          >
-            <div className="shrink-0 space-y-4 p-5 pb-3">
-              <div className="flex items-start justify-between gap-3">
-                <h3 className="text-lg font-bold text-[var(--text)]">
-                  {editingId ? "Editar prato" : "Novo prato"}
-                </h3>
-                <ModalCloseButton onClick={() => setModalOpen(false)} />
-              </div>
-
-              <Field
-                label="Foto do prato"
-                hint="Toque no botão laranja · galeria ou câmera · até 5 MB"
-              >
-                <div className="flex items-center gap-4">
-                  {imagePreview ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={imagePreview}
-                      alt="Prévia"
-                      className="h-20 w-20 shrink-0 rounded-2xl border border-[var(--border)] object-cover"
-                    />
-                  ) : (
-                    <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl border border-dashed border-orange-200 bg-orange-50">
-                      <AppIcon name="restaurant" size={28} color="#ea580c" />
-                    </div>
-                  )}
-                  <div className="min-w-0 flex-1 space-y-2">
-                    <ImagePickerButton onChange={handleImageChange} />
-                    {(imagePreview || editingId) && (
-                      <button
-                        type="button"
-                        onClick={handleRemoveImage}
-                        className="block text-xs font-semibold text-red-600 hover:underline"
-                      >
-                        Remover foto
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </Field>
-            </div>
-
-            <div className="sheet-scroll flex-1 space-y-4 px-5 pb-3">
-              <div>
-                <p className="text-sm font-semibold text-[var(--text)] mb-2">
-                  Tipo de prato
-                </p>
-                <div className="grid grid-cols-2 gap-2">
-                  {categories.map((cat) => (
-                    <button
-                      key={cat.id}
-                      type="button"
-                      onClick={() =>
-                        setForm((f) => ({ ...f, categoryId: cat.id }))
-                      }
-                      className={`flex items-center gap-2 p-3 rounded-xl border text-left text-sm font-semibold transition ${
-                        form.categoryId === cat.id
-                          ? "border-orange-500 bg-orange-50 text-orange-700"
-                          : "border-[var(--border)] text-[var(--text-muted)]"
-                      }`}
-                    >
-                      <AppIcon
-                        name={cat.icon}
-                        size={18}
-                        color={
-                          form.categoryId === cat.id ? "#c2410c" : "#78716c"
-                        }
-                      />
-                      {cat.name}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-            <Field label="Nome do prato" hint="Ex: Prato feito, Strogonoff...">
-              <input
-                value={form.name}
-                onChange={(e) => setForm({ ...form, name: e.target.value })}
-                required
-                placeholder="Como aparece no cardápio"
-                className={inputClass}
-              />
-            </Field>
-
-            <Field
-              label="O que vem no prato?"
-              hint="Ingredientes ou acompanhamentos"
-            >
-              <textarea
-                value={form.description}
-                onChange={(e) =>
-                  setForm({ ...form, description: e.target.value })
-                }
-                rows={2}
-                placeholder="Ex: arroz, feijão, bife e salada"
-                className={`${inputClass} resize-none`}
-              />
-            </Field>
-
-            <Field label="Preço (R$)">
-              <input
-                type="text"
-                inputMode="decimal"
-                value={form.price}
-                onChange={(e) =>
-                  setForm({ ...form, price: maskMoneyInput(e.target.value) })
-                }
-                required
-                placeholder="Ex: 24,90"
-                className={inputClass}
-              />
-            </Field>
-
-            <div className="flex items-center justify-between gap-3 p-4 rounded-2xl border border-[var(--border)] bg-[var(--bg)]">
-              <div>
-                <p className="text-sm font-bold text-[var(--text)]">
-                  Aparece no cardápio?
-                </p>
-                <p className="text-xs text-[var(--text-muted)] mt-0.5">
-                  {form.active
-                    ? "Clientes podem ver e pedir"
-                    : "Fica escondido por enquanto"}
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setForm((f) => ({ ...f, active: !f.active }))}
-                className={`w-12 h-7 rounded-full relative transition shrink-0 ${
-                  form.active ? "bg-green-500" : "bg-stone-300"
-                }`}
-              >
-                <span
-                  className={`absolute top-0.5 w-6 h-6 rounded-full bg-white shadow transition ${
-                    form.active ? "left-[22px]" : "left-0.5"
-                  }`}
-                />
-              </button>
-            </div>
-
-            {error && (
-              <p className="text-sm text-red-600 bg-red-50 rounded-xl px-3 py-2">
-                {error}
-              </p>
-            )}
-            </div>
-
-            <div className="shrink-0 flex gap-3 border-t border-[var(--border)] p-5">
-              <button
-                type="button"
-                onClick={() => setModalOpen(false)}
-                className="flex-1 py-3.5 rounded-xl border border-[var(--border)] font-semibold text-sm text-[var(--text-muted)]"
-              >
-                Cancelar
-              </button>
-              <button
-                type="submit"
-                disabled={saving}
-                className="flex-1 py-3.5 rounded-xl bg-orange-500 text-white font-bold text-sm disabled:opacity-60"
-              >
-                {saving ? "Salvando..." : "Salvar prato"}
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
-    </div>
-  );
-}
-
-const inputClass = fieldInputSurfaceClass;
-
-function Field({
-  label,
-  hint,
-  children,
-}: {
-  label: string;
-  hint?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div>
-      <label className="block text-sm font-semibold text-[var(--text)] mb-0.5">
-        {label}
-      </label>
-      {hint && (
-        <p className="text-[11px] text-[var(--text-muted)] mb-1.5">{hint}</p>
-      )}
-      {children}
     </div>
   );
 }
