@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import AddIcon from "@mui/icons-material/Add";
@@ -15,6 +15,7 @@ import { formatPrice } from "@/lib/format";
 import ModalCloseButton from "@/components/modal-close-button";
 import { fieldInputSurfaceClass } from "@/lib/input-styles";
 import { formatMoneyInput, maskMoneyInput, parseMoneyInput } from "@/lib/masks";
+import { IMAGE_ACCEPT, validateImageFile } from "@/lib/image-file";
 import type { CategoryId, Product } from "@/types";
 
 type ProductForm = {
@@ -48,6 +49,7 @@ export default function AdminDashboard() {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [removeImage, setRemoveImage] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const loadData = useCallback(async () => {
     try {
@@ -144,11 +146,27 @@ export default function AdminDashboard() {
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    e.target.value = "";
+
     if (!file) return;
 
+    try {
+      validateImageFile(file);
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Não foi possível usar esta imagem."
+      );
+      return;
+    }
+
+    setError("");
     setImageFile(file);
     setRemoveImage(false);
     setImagePreview(URL.createObjectURL(file));
+  };
+
+  const openImagePicker = () => {
+    fileInputRef.current?.click();
   };
 
   const handleRemoveImage = () => {
@@ -495,7 +513,7 @@ export default function AdminDashboard() {
 
             <Field
               label="Foto do prato"
-              hint="JPG, PNG ou WebP · até 5 MB (opcional)"
+              hint="Galeria ou câmera · JPG, PNG, HEIC · até 5 MB (opcional)"
             >
               <div className="flex items-center gap-4">
                 {imagePreview ? (
@@ -511,15 +529,20 @@ export default function AdminDashboard() {
                   </div>
                 )}
                 <div className="flex-1 space-y-2">
-                  <label className="inline-flex items-center justify-center px-4 py-2.5 rounded-xl bg-orange-500 text-white text-xs font-bold cursor-pointer hover:bg-orange-600 transition">
-                    Escolher foto
-                    <input
-                      type="file"
-                      accept="image/jpeg,image/png,image/webp,image/gif"
-                      className="hidden"
-                      onChange={handleImageChange}
-                    />
-                  </label>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept={IMAGE_ACCEPT}
+                    className="sr-only"
+                    onChange={handleImageChange}
+                  />
+                  <button
+                    type="button"
+                    onClick={openImagePicker}
+                    className="inline-flex items-center justify-center px-4 py-2.5 rounded-xl bg-orange-500 text-white text-xs font-bold hover:bg-orange-600 transition w-full sm:w-auto"
+                  >
+                    Escolher da galeria
+                  </button>
                   {(imagePreview || editingId) && (
                     <button
                       type="button"

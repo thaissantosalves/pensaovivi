@@ -59,32 +59,40 @@ export default function AdminLoginPage() {
           className="bg-[var(--surface)] rounded-3xl border border-[var(--border)] p-6 space-y-4 shadow-sm"
         >
           <div>
-            <label className="block text-sm font-semibold text-[var(--text)] mb-1.5">
-              E-mail
+            <label
+              htmlFor="admin-email"
+              className="block text-sm font-semibold text-[var(--text)] mb-1.5"
+            >
+              E-mail de acesso
             </label>
             <input
+              id="admin-email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
               autoComplete="email"
               className={inputClass}
-              placeholder="seu@email.com"
+              placeholder="Digite seu e-mail"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-[var(--text)] mb-1.5">
-              Senha
+            <label
+              htmlFor="admin-password"
+              className="block text-sm font-semibold text-[var(--text)] mb-1.5"
+            >
+              Senha de acesso
             </label>
             <input
+              id="admin-password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
               autoComplete="current-password"
               className={inputClass}
-              placeholder="Sua senha"
+              placeholder="Digite sua senha"
             />
           </div>
 
@@ -101,10 +109,6 @@ export default function AdminLoginPage() {
           >
             {loading ? "Entrando..." : "Entrar"}
           </button>
-
-          <p className="text-[11px] text-center text-[var(--text-muted)] leading-relaxed">
-            Demo: admin@pensaovivi.com · senha vivi2024
-          </p>
         </form>
 
         <Link

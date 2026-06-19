@@ -1,14 +1,7 @@
 import { createAdminClient } from "@/lib/supabase/admin";
+import { resolveImageFile, validateImageFile } from "@/lib/image-file";
 
 export const PRODUCT_IMAGES_BUCKET = "product-images";
-
-const MAX_FILE_SIZE = 5 * 1024 * 1024;
-const ALLOWED_TYPES = new Set([
-  "image/jpeg",
-  "image/png",
-  "image/webp",
-  "image/gif",
-]);
 
 export function getPublicImageUrl(path: string): string {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -23,29 +16,7 @@ export function pathFromPublicUrl(imageUrl: string): string | null {
   return imageUrl.slice(index + marker.length);
 }
 
-export function validateImageFile(file: File) {
-  if (!ALLOWED_TYPES.has(file.type)) {
-    throw new Error("Use JPG, PNG, WebP ou GIF.");
-  }
-  if (file.size > MAX_FILE_SIZE) {
-    throw new Error("A imagem deve ter no máximo 5 MB.");
-  }
-}
-
-function extensionForType(type: string): string {
-  switch (type) {
-    case "image/jpeg":
-      return "jpg";
-    case "image/png":
-      return "png";
-    case "image/webp":
-      return "webp";
-    case "image/gif":
-      return "gif";
-    default:
-      return "jpg";
-  }
-}
+export { validateImageFile } from "@/lib/image-file";
 
 export async function uploadProductImage(
   productId: string,
@@ -53,15 +24,15 @@ export async function uploadProductImage(
 ): Promise<string> {
   validateImageFile(file);
 
+  const { mime, ext } = resolveImageFile(file);
   const supabase = createAdminClient();
-  const ext = extensionForType(file.type);
   const path = `${productId}/${Date.now()}.${ext}`;
   const buffer = Buffer.from(await file.arrayBuffer());
 
   const { error } = await supabase.storage
     .from(PRODUCT_IMAGES_BUCKET)
     .upload(path, buffer, {
-      contentType: file.type,
+      contentType: mime,
       upsert: false,
     });
 
