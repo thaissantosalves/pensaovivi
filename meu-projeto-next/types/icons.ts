@@ -1,0 +1,27 @@
+export type AppIconName =
+  | "lunchDining"
+  | "riceBowl"
+  | "soupKitchen"
+  | "kebabDining"
+  | "fastfood"
+  | "restaurant"
+  | "localBar"
+  | "localCafe"
+  | "waterDrop"
+  | "cake"
+  | "cookie"
+  | "localDrink"
+  | "icecream"
+  | "qrCode"
+  | "payments"
+  | "creditCard"
+  | "restaurantMenu"
+  | "shoppingBag"
+  | "chatBubble"
+  | "storefront"
+  | "deliveryDining"
+  | "shoppingCart"
+  | "deleteOutline"
+  | "close";
+
+export type PaymentIconName = "qrCode" | "payments" | "creditCard";

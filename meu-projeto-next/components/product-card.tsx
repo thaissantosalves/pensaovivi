@@ -1,80 +1,45 @@
-'use client';
+"use client";
 
-import Image from 'next/image';
+import AddIcon from "@mui/icons-material/Add";
+import { formatPrice } from "@/lib/format";
+import ProductThumbnail from "@/components/product-thumbnail";
+import type { Product } from "@/types";
 
 type ProductCardProps = {
-name: string;
-description: string;
-price: number;
-image: string;
+  product: Product;
+  onAdd: (product: Product) => void;
 };
 
-export default function ProductCard({
-name,
-description,
-price,
-image,
-}: ProductCardProps) {
-return ( <div
-   className="
-     w-full
-     bg-white
-     rounded-xl
-     shadow-sm
-     overflow-hidden
-     hover:shadow-md
-     transition
-   "
- >
-{/* Imagem */} <div className="relative w-full h-28 sm:h-36"> <Image
-       src={image}
-       alt={name}
-       fill
-       className="object-cover"
-     /> </div>
+export default function ProductCard({ product, onAdd }: ProductCardProps) {
+  return (
+    <article className="flex items-center gap-3 py-4 border-b border-[var(--border)] last:border-0">
+      <ProductThumbnail
+        imageUrl={product.imageUrl}
+        icon={product.icon}
+        alt={product.name}
+        size="md"
+      />
 
-```
-  {/* Conteúdo */}
-  <div className="p-3 flex flex-col gap-1.5">
+      <div className="flex-1 min-w-0">
+        <h2 className="text-[15px] font-bold text-[var(--text)] leading-tight">
+          {product.name}
+        </h2>
+        <p className="text-xs text-[var(--text-muted)] mt-1 leading-relaxed line-clamp-2">
+          {product.description}
+        </p>
+        <p className="text-base font-extrabold text-orange-600 mt-1.5">
+          {formatPrice(product.price)}
+        </p>
+      </div>
 
-    {/* Nome */}
-    <h2 className="text-sm sm:text-base font-bold text-gray-800 leading-tight">
-      {name}
-    </h2>
-
-    {/* Descrição */}
-    <p className="text-xs text-gray-600 line-clamp-2">
-      {description}
-    </p>
-
-    {/* Rodapé */}
-    <div className="flex items-center justify-between mt-1">
-
-      {/* Preço */}
-      <span className="text-sm sm:text-base font-extrabold text-orange-600">
-        R$ {price.toFixed(2)}
-      </span>
-
-      {/* Botão */}
       <button
-        className="
-          bg-orange-500
-          text-white
-          px-3
-          py-1.5
-          rounded-lg
-          text-xs
-          font-semibold
-          hover:bg-orange-600
-          transition
-        "
+        type="button"
+        onClick={() => onAdd(product)}
+        aria-label={`Adicionar ${product.name}`}
+        className="w-11 h-11 rounded-full bg-orange-500 text-white flex items-center justify-center shrink-0 shadow-md shadow-orange-200 hover:bg-orange-600 active:scale-95 transition"
       >
-        Pedir
+        <AddIcon sx={{ fontSize: 22 }} />
       </button>
-
-    </div>
-  </div>
-</div>
-
-);
+    </article>
+  );
 }

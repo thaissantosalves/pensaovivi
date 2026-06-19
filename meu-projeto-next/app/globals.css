@@ -1,14 +1,130 @@
 @import "tailwindcss";
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-background: #fffbeb;
+  --color-foreground: #292524;
+  --font-sans: var(--font-dm-sans), system-ui, sans-serif;
+  --font-display: var(--font-playfair), Georgia, "Times New Roman", serif;
+}
+
+:root,
+[data-theme="light"] {
+  --bg: #fffbeb;
+  --surface: #ffffff;
+  --surface-muted: #fef3c7;
+  --text: #292524;
+  --text-muted: #78716c;
+  --border: #f5f5f4;
+  --font-scale: 1;
+}
+
+[data-theme="dark"] {
+  --bg: #1c1917;
+  --surface: #292524;
+  --surface-muted: #44403c;
+  --text: #fafaf9;
+  --text-muted: #a8a29e;
+  --border: #44403c;
+}
+
+[data-font-size="large"] {
+  --font-scale: 1.08;
+}
+
+[data-font-size="xlarge"] {
+  --font-scale: 1.16;
+}
+
+[data-contrast="high"] {
+  --bg: #000000;
+  --surface: #0a0a0a;
+  --surface-muted: #171717;
+  --text: #ffffff;
+  --text-muted: #e5e5e5;
+  --border: #ffffff;
+}
+
+[data-contrast="high"][data-theme="light"] {
+  --bg: #ffffff;
+  --surface: #ffffff;
+  --surface-muted: #f5f5f5;
+  --text: #000000;
+  --text-muted: #262626;
+  --border: #000000;
+}
+
+[data-motion="reduce"] *,
+[data-motion="reduce"] *::before,
+[data-motion="reduce"] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+}
+
+html {
+  font-size: calc(16px * var(--font-scale, 1));
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-left {
+  from {
+    opacity: 0;
+    transform: translateX(-100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 8px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.3s ease-out;
+}
+
+.animate-slide-left {
+  animation: slide-left 0.3s ease-out;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.25s ease-out;
 }

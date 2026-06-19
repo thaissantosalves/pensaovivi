@@ -1,20 +1,26 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { DM_Sans, Playfair_Display } from "next/font/google";
+import { CartProvider } from "@/context/cart-context";
+import { ThemeProvider } from "@/context/theme-context";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const dmSans = DM_Sans({
+  variable: "--font-dm-sans",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const playfair = Playfair_Display({
+  variable: "--font-playfair",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  style: ["normal", "italic"],
 });
 
 export const metadata: Metadata = {
-  title: "Pensão da Vivi",
-  description: "Site oficial da Pensão da Vivi",
+  title: "Pensão da Vivi — Cardápio Digital",
+  description:
+    "Faça seu pedido online e envie pelo WhatsApp. Refeições caseiras com carinho.",
 };
 
 export default function RootLayout({
@@ -23,17 +29,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="pt-br">
+    <html lang="pt-BR" suppressHydrationWarning>
       <body
-        className={`
-          ${geistSans.variable}
-          ${geistMono.variable}
-          antialiased
-          bg-amber-50
-          min-h-screen
-        `}
+        className={`${dmSans.variable} ${playfair.variable} antialiased`}
+        suppressHydrationWarning
       >
-        {children}
+        <ThemeProvider>
+          <CartProvider>{children}</CartProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
