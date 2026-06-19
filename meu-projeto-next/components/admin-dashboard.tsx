@@ -12,6 +12,9 @@ import AppIcon from "@/components/app-icon";
 import ProductThumbnail from "@/components/product-thumbnail";
 import { categories } from "@/lib/menu-data";
 import { formatPrice } from "@/lib/format";
+import ModalCloseButton from "@/components/modal-close-button";
+import { fieldInputSurfaceClass } from "@/lib/input-styles";
+import { formatMoneyInput, maskMoneyInput, parseMoneyInput } from "@/lib/masks";
 import type { CategoryId, Product } from "@/types";
 
 type ProductForm = {
@@ -41,6 +44,7 @@ export default function AdminDashboard() {
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const [togglingId, setTogglingId] = useState<string | null>(null);
+  const [toggleError, setToggleError] = useState("");
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [removeImage, setRemoveImage] = useState(false);
@@ -97,7 +101,7 @@ export default function AdminDashboard() {
       categoryId: product.categoryId,
       name: product.name,
       description: product.description,
-      price: String(product.price),
+      price: formatMoneyInput(product.price),
       active: product.active !== false,
     });
     setError("");
@@ -113,14 +117,26 @@ export default function AdminDashboard() {
   };
 
   const toggleVisibility = async (product: Product) => {
+    setToggleError("");
     setTogglingId(product.id);
+    const nextActive = product.active === false;
+
     try {
       const res = await fetch(`/api/products/${product.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ active: product.active === false }),
+        body: JSON.stringify({ active: nextActive }),
       });
-      if (res.ok) await loadData();
+
+      if (!res.ok) {
+        const data = await res.json();
+        setToggleError(data.error ?? "Não foi possível atualizar o prato.");
+        return;
+      }
+
+      await loadData();
+    } catch {
+      setToggleError("Sem conexão. Tente de novo.");
     } finally {
       setTogglingId(null);
     }
@@ -180,7 +196,7 @@ export default function AdminDashboard() {
       categoryId: form.categoryId,
       name: form.name.trim(),
       description: form.description.trim(),
-      price: Number(form.price.replace(",", ".")),
+      price: parseMoneyInput(form.price),
       active: form.active,
     };
 
@@ -189,7 +205,7 @@ export default function AdminDashboard() {
       setSaving(false);
       return;
     }
-    if (!payload.price || payload.price <= 0) {
+    if (!payload.price || payload.price <= 0 || !Number.isFinite(payload.price)) {
       setError("Digite um preço válido.");
       setSaving(false);
       return;
@@ -240,8 +256,8 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-[var(--bg)]">
-      <div className="max-w-md mx-auto min-h-screen bg-[var(--bg)] shadow-xl shadow-stone-200/30">
+    <div className="min-h-dvh bg-[var(--bg)] overflow-x-hidden">
+      <div className="max-w-md mx-auto min-h-dvh bg-[var(--bg)] shadow-xl shadow-stone-200/30 overflow-x-hidden">
         <header className="sticky top-0 z-10 bg-[var(--surface)] border-b border-[var(--border)] px-4 py-4">
           <div className="flex items-start justify-between gap-3">
             <div>
@@ -316,6 +332,12 @@ export default function AdminDashboard() {
               Ver cardápio
             </Link>
           </div>
+
+          {toggleError && (
+            <p className="text-sm text-red-600 bg-red-50 rounded-xl px-3 py-2 mb-3">
+              {toggleError}
+            </p>
+          )}
 
           <div className="space-y-3">
             {filteredProducts.length === 0 ? (
@@ -431,11 +453,14 @@ export default function AdminDashboard() {
           />
           <form
             onSubmit={handleSubmit}
-            className="relative w-full max-w-md bg-[var(--surface)] rounded-t-3xl p-5 space-y-4 max-h-[92vh] overflow-y-auto"
+            className="relative w-full max-w-md bg-[var(--surface)] rounded-t-3xl p-5 pt-4 space-y-4 max-h-[90dvh] sheet-scroll"
           >
-            <h3 className="text-lg font-bold text-[var(--text)]">
-              {editingId ? "Editar prato" : "Novo prato"}
-            </h3>
+            <div className="flex items-start justify-between gap-3 sticky top-0 bg-[var(--surface)] pb-1 z-10">
+              <h3 className="text-lg font-bold text-[var(--text)]">
+                {editingId ? "Editar prato" : "Novo prato"}
+              </h3>
+              <ModalCloseButton onClick={() => setModalOpen(false)} />
+            </div>
 
             <div>
               <p className="text-sm font-semibold text-[var(--text)] mb-2">
@@ -538,7 +563,9 @@ export default function AdminDashboard() {
                 type="text"
                 inputMode="decimal"
                 value={form.price}
-                onChange={(e) => setForm({ ...form, price: e.target.value })}
+                onChange={(e) =>
+                  setForm({ ...form, price: maskMoneyInput(e.target.value) })
+                }
                 required
                 placeholder="Ex: 24,90"
                 className={inputClass}
@@ -600,8 +627,7 @@ export default function AdminDashboard() {
   );
 }
 
-const inputClass =
-  "w-full rounded-xl border border-[var(--border)] bg-[var(--bg)] px-3 py-3 text-sm text-[var(--text)] placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-orange-400";
+const inputClass = fieldInputSurfaceClass;
 
 function Field({
   label,

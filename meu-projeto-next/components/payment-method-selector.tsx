@@ -5,6 +5,8 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { PAYMENT_LABELS } from "@/lib/constants";
 import { formatPrice, parseMoney } from "@/lib/format";
 import AppIcon from "@/components/app-icon";
+import { fieldInputLightClass } from "@/lib/input-styles";
+import { maskMoneyInput } from "@/lib/masks";
 import type { CashChangeOption, PaymentMethod } from "@/types";
 import type { PaymentIconName } from "@/types/icons";
 
@@ -162,9 +164,11 @@ export default function PaymentMethodSelector({
                     type="text"
                     inputMode="decimal"
                     value={changeFor}
-                    onChange={(e) => onChangeForChange(e.target.value)}
-                    placeholder="Ex: R$ 50,00"
-                    className="w-full rounded-xl border border-stone-200 px-3 py-2.5 text-sm text-stone-800 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-orange-400 bg-white"
+                    onChange={(e) =>
+                      onChangeForChange(maskMoneyInput(e.target.value))
+                    }
+                    placeholder="Ex: 50,00"
+                    className={fieldInputLightClass}
                   />
 
                   {paidAmount !== null && paidAmount < orderTotal && (

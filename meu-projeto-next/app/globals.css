@@ -63,12 +63,35 @@
 
 html {
   font-size: calc(16px * var(--font-scale, 1));
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  overflow-x: hidden;
+  touch-action: manipulation;
 }
 
 body {
   background: var(--bg);
   color: var(--text);
   font-family: var(--font-sans);
+  overflow-x: hidden;
+  width: 100%;
+  max-width: 100vw;
+  min-height: 100dvh;
+  overscroll-behavior-y: none;
+}
+
+/* iOS dá zoom automático em campos com fonte menor que 16px */
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="hidden"]):not([type="file"]),
+textarea,
+select {
+  font-size: 16px !important;
+  max-width: 100%;
+}
+
+.sheet-scroll {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
 }
 
 .font-display {

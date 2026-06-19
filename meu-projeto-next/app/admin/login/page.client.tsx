@@ -3,6 +3,7 @@
 import { FormEvent, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { fieldInputSurfaceClass } from "@/lib/input-styles";
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -42,7 +43,7 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[var(--bg)] flex items-center justify-center p-4">
+    <div className="min-h-dvh bg-[var(--bg)] flex items-center justify-center p-4 overflow-x-hidden">
       <div className="w-full max-w-md">
         <div className="text-center mb-6">
           <h1 className="font-display text-2xl text-orange-600 italic">
@@ -117,5 +118,4 @@ export default function AdminLoginPage() {
   );
 }
 
-const inputClass =
-  "w-full rounded-xl border border-[var(--border)] bg-[var(--bg)] px-3 py-3 text-sm text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-orange-400";
+const inputClass = fieldInputSurfaceClass;

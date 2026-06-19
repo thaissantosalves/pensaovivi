@@ -55,8 +55,8 @@ export default function MenuPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[var(--bg)] pb-28">
-      <div className="max-w-md mx-auto bg-[var(--bg)] min-h-screen shadow-xl shadow-stone-200/40">
+    <div className="min-h-dvh bg-[var(--bg)] pb-28 overflow-x-hidden">
+      <div className="max-w-md mx-auto bg-[var(--bg)] min-h-dvh shadow-xl shadow-stone-200/40 overflow-x-hidden">
         <HeaderComponent onMenuOpen={() => setMenuOpen(true)} />
         <HeroSection />
 

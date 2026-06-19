@@ -116,6 +116,10 @@ export function parseProductUpdateBody(body: ProductInput) {
     }
   }
 
+  if (body.active !== undefined) {
+    data.active = Boolean(body.active);
+  }
+
   if (errors.length > 0) {
     return { ok: false as const, errors };
   }

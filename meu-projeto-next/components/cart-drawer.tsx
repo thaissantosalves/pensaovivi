@@ -24,7 +24,7 @@ export default function CartDrawer({ open, onClose, onCheckout }: CartDrawerProp
         onClick={onClose}
       />
 
-      <aside className="relative w-full max-w-md h-full bg-white shadow-2xl flex flex-col animate-slide-left">
+      <aside className="relative w-full max-w-md h-dvh max-h-dvh bg-white shadow-2xl flex flex-col animate-slide-left overflow-hidden">
         <div className="flex items-center justify-between px-5 py-4 border-b border-stone-100">
           <div>
             <h2 className="text-lg font-bold text-stone-800">Seu pedido</h2>

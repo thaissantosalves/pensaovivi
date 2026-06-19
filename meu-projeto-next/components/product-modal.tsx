@@ -3,6 +3,8 @@
 import { useEffect } from "react";
 import { formatPrice } from "@/lib/format";
 import AppIcon from "@/components/app-icon";
+import ModalCloseButton from "@/components/modal-close-button";
+import { fieldInputLightClass } from "@/lib/input-styles";
 import type { Product } from "@/types";
 
 type ProductModalProps = {
@@ -69,6 +71,11 @@ function ProductModalForm({
       />
 
       <div className="relative w-full max-w-md bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl animate-slide-up overflow-hidden">
+        <ModalCloseButton
+          onClick={onClose}
+          variant="dark"
+          className="absolute top-3 right-3 z-10"
+        />
         <div className="h-32 bg-gradient-to-br from-orange-400 via-orange-500 to-amber-600 flex items-center justify-center overflow-hidden">
           {product.imageUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
@@ -117,7 +124,7 @@ function ProductModalForm({
               name="notes"
               rows={2}
               placeholder="Ex: sem cebola, ponto da carne bem passado..."
-              className="w-full rounded-xl border border-stone-200 px-3 py-2.5 text-sm text-stone-800 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-orange-400 resize-none"
+              className={`${fieldInputLightClass} resize-none`}
             />
           </div>
 
@@ -159,7 +166,7 @@ function QuantityInput({
         min={1}
         max={99}
         defaultValue={defaultValue}
-        className="w-14 text-center py-2.5 text-sm font-bold text-stone-800 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+        className="w-14 text-center py-2.5 text-base font-bold text-stone-800 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
         readOnly
         data-qty-input
       />

@@ -6,6 +6,8 @@ import { buildWhatsAppMessage, buildWhatsAppUrl } from "@/lib/whatsapp";
 import { useCart } from "@/context/cart-context";
 import PaymentMethodSelector from "@/components/payment-method-selector";
 import AppIcon from "@/components/app-icon";
+import { fieldInputLightClass } from "@/lib/input-styles";
+import { maskPhone } from "@/lib/masks";
 import type { PaymentMethod } from "@/types";
 import type { AppIconName } from "@/types/icons";
 
@@ -93,7 +95,7 @@ export default function CheckoutSheet({
         onClick={onClose}
       />
 
-      <div className="relative w-full max-w-lg max-h-[92vh] bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl flex flex-col animate-slide-up overflow-hidden">
+      <div className="relative w-full max-w-lg max-h-[90dvh] bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl flex flex-col animate-slide-up overflow-hidden">
         <div className="px-5 py-4 border-b border-stone-100 shrink-0">
           <div className="flex items-center justify-between">
             <div>
@@ -118,7 +120,7 @@ export default function CheckoutSheet({
         <form
           id="checkout-form"
           onSubmit={handleSubmit}
-          className="flex-1 overflow-y-auto px-5 py-4 space-y-5"
+          className="sheet-scroll flex-1 px-5 py-4 space-y-5"
         >
           <section className="space-y-3">
             <h3 className="text-sm font-bold text-stone-700 uppercase tracking-wide">
@@ -136,8 +138,12 @@ export default function CheckoutSheet({
             <Field label="Telefone / WhatsApp" required>
               <input
                 type="tel"
+                inputMode="tel"
+                autoComplete="tel"
                 value={checkout.customerPhone}
-                onChange={(e) => setCheckout({ customerPhone: e.target.value })}
+                onChange={(e) =>
+                  setCheckout({ customerPhone: maskPhone(e.target.value) })
+                }
                 placeholder="(21) 99999-9999"
                 className={inputClass}
               />
@@ -236,8 +242,7 @@ export default function CheckoutSheet({
   );
 }
 
-const inputClass =
-  "w-full rounded-xl border border-stone-200 px-3 py-2.5 text-sm text-stone-800 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-orange-400 bg-white";
+const inputClass = fieldInputLightClass;
 
 function Field({
   label,
